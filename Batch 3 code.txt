@@ -1,0 +1,226 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.metrics import accuracy_score
+
+covid_dataset = pd.read_csv('/content/yt ds.csv') 
+covid_dataset.head()
+
+
+sns.countplot(x=covid_dataset["RISK SEVERITY"])
+
+
+covid_dataset.shape
+covid_dataset.describe()
+
+
+covid_dataset['RISK SEVERITY'].value_counts()
+
+
+
+covid_dataset.groupby('RISK SEVERITY').mean()
+
+
+
+X = covid_dataset.drop(columns = 'RISK SEVERITY', axis=1)
+Y = covid_dataset['RISK SEVERITY']
+
+
+
+print(X)
+
+
+
+print(Y)
+
+
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.3, stratify=Y, random_state=2)
+
+
+
+print(X.shape, X_train.shape, X_test.shape)
+
+
+
+classifier = svm.SVC(kernel='linear')
+
+
+
+#training the support vector Machine Classifier
+classifier.fit(X_train, Y_train)
+
+
+# accuracy score on the training data
+X_train_prediction = classifier.predict(X_train)
+training_data_accuracy = accuracy_score(X_train_prediction, Y_train)
+
+
+
+print('Accuracy score of the training data : ', training_data_accuracy)
+
+
+
+# accuracy score on the test data
+X_test_prediction = classifier.predict(X_test)
+test_data_accuracy = accuracy_score(X_test_prediction, Y_test)
+
+
+
+print('Accuracy score of the test data : ', test_data_accuracy)
+
+
+
+input_data = (6,13,50)
+
+# changing the input_data to numpy array
+input_data_as_numpy_array = np.asarray(input_data)
+
+# reshape the array as we are predicting for one instance
+input_data_reshaped = input_data_as_numpy_array.reshape(1,-1)
+
+prediction = classifier.predict(input_data_reshaped)
+print(prediction)
+
+if (prediction[0] == 0.0):
+  print('The person is  low risk')
+else:
+  print('The person is high risk')
+
+
+
+import pickle
+
+
+
+filename = 'trained_final_model.sav'
+pickle.dump(classifier, open(filename, 'wb'))
+
+
+
+# loading the saved model
+loaded_model = pickle.load(open('trained_final_model.sav', 'rb'))
+
+
+
+input_data = (6,13,50)
+
+# changing the input_data to numpy array
+input_data_as_numpy_array = np.asarray(input_data)
+
+# reshape the array as we are predicting for one instance
+input_data_reshaped = input_data_as_numpy_array.reshape(1,-1)
+
+prediction = classifier.predict(input_data_reshaped)
+print(prediction)
+
+if (prediction[0] == 0.0):
+  print('The person is  low risk')
+else:
+  print('The person is high risk')
+
+
+
+prediction = classifier.predict(input_data_reshaped)
+type(prediction)
+
+
+
+from sklearn import metrics
+confusion_matrix = metrics.confusion_matrix(X_test_prediction, Y_test)
+
+
+
+print(confusion_matrix)
+
+
+
+from sklearn.metrics import precision_recall_fscore_support as score
+precision, recall, fscore, support = score(X_test_prediction, Y_test)
+print('precision: {}'.format(precision))
+print('recall: {}'.format(recall))
+print('fscore: {}'.format(fscore))
+print('support: {}'.format(support))
+
+
+
+print(classification_report(X_test_prediction, Y_test))
+----------------------------------------------------****----------****----------------------------------
+
+
+#spyder code for streamlit framework
+import numpy as np
+import pickle
+import streamlit as st
+
+
+# loading the saved model
+loaded_model = pickle.load(open('C:\work/trained_final_model.sav', 'rb'))
+
+
+# creating a function for Prediction
+
+def risk_prediction(input_data):
+    # changing the input_data to numpy array
+    input_data_as_numpy_array = np.asarray(input_data)
+
+    # reshape the array as we are predicting for one instance
+    input_data_reshaped = input_data_as_numpy_array.reshape(1,-1)
+
+    prediction = loaded_model.predict(input_data_reshaped)
+    print(prediction)
+
+    if (prediction[0] == 0):
+        return 'The person is identified as covid-19 LOW RISK patient and for COVID-19 positive patients with mild symptoms, hospitalization may not be necessary and they may be able to recover at home. In such cases, it is important for the patient to follow self-isolation guidelines to prevent the spread of the virus to others. \n\nHere are some precautions that should be taken for less severe COVID-19 patients who are recovering at home: \n\n1. Self-isolation: The patient should self-isolate in a separate room with a private bathroom if possible. They should not have visitors and should avoid contact with other members of the household. \n\n2. Personal hygiene: The patient should wash their hands frequently with soap and water for at least 20 seconds, avoid touching their face, and cover their mouth and nose with a tissue or their elbow when coughing or sneezing. \n\n3. Monitoring symptoms: The patient should monitor their symptoms and seek medical attention if their condition worsens, such as if they have difficulty breathing, persistent chest pain or pressure, confusion, or bluish lips or face. \n\n4. Treatment: The patient should follow their healthcare provider\'s instructions for treating symptoms, which may include over-the-counter medications to relieve fever and pain. \n\n5. Communication: The patient should stay in communication with their healthcare provider and report any changes in their symptoms. \n\n It is important to note that patients with mild symptoms can still spread the virus to others who may be more vulnerable, so it is important to take these precautions seriously to prevent further spread of the virus.'
+    else:
+        return 'The person is identified as covid-19 HIGH RISK patient and the following precautions should be taken: \n\n1. Isolation: The patient should be isolated in a single room with a private bathroom if possible. \n\n2. Personal protective equipment (PPE): All healthcare workers who come into contact with the patient should wear appropriate PPE, including gloves, gowns, masks, and eye protection. \n\n3. Hand hygiene: Healthcare workers should perform hand hygiene frequently, including before and after entering the patient\'s room. \n\n4. Environmental cleaning: High-touch surfaces in the patient\'s room should be cleaned and disinfected frequently. \n\n4. Airflow: The patient\'s room should have negative pressure airflow to prevent the spread of the virus to other areas of the hospital. \n\nRegarding bed allocation, hospitals typically follow a protocol to assign beds to COVID-19 positive patients based on the severity of their illness and their specific needs. In general, more severe cases will be given priority for available beds and may require more advanced medical equipment and monitoring. Hospitals may also have specific units or wards designated for COVID-19 patients to prevent the spread of the virus to non-infected patients.'
+
+
+
+
+    
+def main():
+    # giving a title
+    st.title('Risk factor identification and prediction of treatment planning for covid-19 patients based on CTSS Scores using machine learning techniques')
+    # getting the input data from the user
+    CORRADS = st.text_input('CORADS')
+    
+    CTSS_SCORES = st.text_input('CTSS SCORE')
+    AGE = st.text_input('AGE')
+   
+    
+    # code for Prediction
+    diagnosis = ''
+    
+    # creating a button for Prediction
+    
+    if st.button('Result'):
+        diagnosis = risk_prediction([CORRADS,CTSS_SCORES,AGE])
+        
+        if((int(CORRADS)>6) and (int(CTSS_SCORES)>25)):
+             st.success("CORADS and CTSS SCORE Values exceeding the limit")
+        
+        elif((int(CORRADS)<1) and (int(CTSS_SCORES)<0)):
+             st.success("CORADS and CTSS SCORE Values exceeding the limit")
+        
+        elif ((int(CORRADS)>6) or (int(CORRADS)<1)):
+            st.success("CORADS Values are out of range")
+        
+        elif ((int(CTSS_SCORES)>25) or (int(CTSS_SCORES)<0) ):
+            st.success("CTSS SCORE Values exceeding the limit")
+        
+             
+        
+        else:
+            st.success(diagnosis)
+    
+    
+    
+    
+    
+if __name__ == '__main__':
+    main()
+_________________________*****________________*****________________*****_______________
+Streamlit run "C:\work\svm risk factor web.py"
